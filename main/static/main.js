@@ -31,8 +31,12 @@ let setShips = (field) => {
 $(document).ready(() => {
 
 
-    let mainField = $('#field');
-    createField(mainField);
-    setShips(mainField);
+    let userField = $('#fieldUser');
+    createField(userField);
+    setShips(userField);
+
+    let compField = $('#fieldComp');
+    createField(compField);
+    setShips(compField);
 
 });
