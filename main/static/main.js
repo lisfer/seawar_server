@@ -15,9 +15,9 @@ let createField = (field) => {
     $(field).html(cells)
 };
 
-let setShips = (field) => {
+let setShips = (field, user) => {
     $.ajax({
-        url: '/set_all_ships_random',
+        url: '/init_ship/' + (user ? 'user' : 'comp'),
         success: (data) => {
             let cells = field.find('td');
             for (i in data) {
@@ -33,7 +33,7 @@ $(document).ready(() => {
 
     let userField = $('#fieldUser');
     createField(userField);
-    setShips(userField);
+    setShips(userField, true);
 
     let compField = $('#fieldComp');
     createField(compField);
