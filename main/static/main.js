@@ -1,5 +1,4 @@
-const CELL = {EMPTY: 0, SHIP: 10, BORDER: 1};
-
+const FIELD = {EMPTY: 0, SHIP: 10, BORDER: 1, MAX_X: 10, MAX_Y: 10, HIT: 'hit', MISS: 'miss'};
 
 let createField = (field) => {
     let cells = '<table>';
@@ -10,7 +9,7 @@ let createField = (field) => {
         }
         cells += '</tr>';
     }
-    cells += '<table>';
+    cells += '</table>';
     console.log(field, cells);
     $(field).html(cells)
 };
@@ -21,15 +20,37 @@ let setShips = (field, user) => {
         success: (data) => {
             let cells = field.find('td');
             for (i in data) {
-                data[i] == CELL.SHIP ? $(cells[i]).addClass('shipCell'): '';
+                data[i] == FIELD.SHIP ? $(cells[i]).addClass('shipCell'): '';
+                cells[i].x = i % FIELD.MAX_X;
+                cells[i].y = Math.floor(i / FIELD.MAX_X);
             }
         }
     });
 };
 
+let allowShoots = (field) => {
+    field.find('td').click((elem) => {
+        let cell = elem.target;
+        console.log(cell.x, cell.y);
+        $.ajax({
+            url: '/player_shoot',
+            method: 'post',
+            data: {x: cell.x, y: cell.y},
+            success: (data) => {
+                if (data == FIELD.HIT) {
+                    $(cell).addClass('hit');
+                } else if (data == FIELD.MISS) {
+                    $(cell).addClass('miss');
+                } else {
+                    console.log(data);
+                }
+            }
+        })
+    })
+}
+
 
 $(document).ready(() => {
-
 
     let userField = $('#fieldUser');
     createField(userField);
@@ -38,5 +59,7 @@ $(document).ready(() => {
     let compField = $('#fieldComp');
     createField(compField);
     setShips(compField);
+
+    allowShoots(compField);
 
 });
