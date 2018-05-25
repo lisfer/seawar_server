@@ -61,7 +61,6 @@ def user_shoot():
     except (ValueError, TypeError):
         return f'Invalid coordinates {x} : {y}'
 
-    session['computer_field'] = field.to_json()
     return resp
 
 
