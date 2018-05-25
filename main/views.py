@@ -69,8 +69,8 @@ def user_shoot():
 def computer_shoot():
     computer_targets = SeaFieldJSON.from_session('computer_targets')
     user_field = SeaFieldJSON.from_session('user_field')
-    x, y, answer = SeaPlayground.make_shoot(computer_targets, user_field)
-    return dict(x=x, y=y, answer=answer)
+    x, y, answer = SeaPlayground2.make_shoot(computer_targets, user_field)
+    return jsonify(dict(x=x, y=y, answer=answer))
 
 
 @app.after_request
@@ -78,5 +78,4 @@ def save_session(response):
     if g.get('to_session'):
         for name, obj in g.to_session.items():
             session[name] = obj.to_json()
-
     return response

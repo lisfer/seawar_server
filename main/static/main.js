@@ -42,6 +42,7 @@ let allowShoots = (field) => {
                     $(cell).addClass('hit');
                 } else if (data == FIELD.MISS) {
                     $(cell).addClass('miss');
+                    computerShoot();
                 } else {
                     console.log(data);
                 }
@@ -49,6 +50,18 @@ let allowShoots = (field) => {
         })
     })
 };
+
+let computerShoot = () => {
+    $.ajax({
+        url: '/computer_shoot',
+        method: 'post',
+        async: false,
+        success: (data) => {
+            cellN = data.y * FIELD.MAX_X + data.x;
+            $($('#fieldUser td')[cellN]).addClass(data.answer ? (computerShoot(), FIELD.HIT) : FIELD.MISS);
+        }
+    })
+}
 
 $(document).ready(() => {
 
