@@ -34,7 +34,7 @@ let allowShoots = (field) => {
         let cell = elem.target;
         console.log(cell.x, cell.y);
         $.ajax({
-            url: '/player_shoot',
+            url: '/user_shoot',
             method: 'post',
             data: {x: cell.x, y: cell.y},
             success: (data) => {
@@ -48,8 +48,7 @@ let allowShoots = (field) => {
             }
         })
     })
-}
-
+};
 
 $(document).ready(() => {
 
