@@ -16,7 +16,7 @@ let createField = (field) => {
 
 let setShips = (field, user) => {
     $.ajax({
-        url: '/init_ship/' + (user ? 'user' : 'comp'),
+        url: '/init_ship/' + (user ? 'user' : 'computer'),
         success: (data) => {
             let cells = field.find('td');
             for (i in data) {
