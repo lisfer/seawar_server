@@ -40,8 +40,10 @@ let allowShoots = (field) => {
             success: (data) => {
                 if (data == FIELD.HIT) {
                     $(cell).addClass('hit shooted');
+                    $(cell).unbind('click')
                 } else if (data == FIELD.MISS) {
                     $(cell).addClass('miss shooted');
+                    $(cell).unbind('click')
                     computerShoot();
                 } else {
                     console.log(data);
