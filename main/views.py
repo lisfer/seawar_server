@@ -1,5 +1,5 @@
 from flask import render_template, jsonify, session, request, g
-from seawar_skeleton import SeaPlayground, SeaField, IncorrectCoordinate
+from seawar_skeleton import SeaPlayground, SeaField, IncorrectCoordinate, ComputerPlayer, Cell
 
 from main import app
 
@@ -7,7 +7,10 @@ from main import app
 class SeaFieldJSON(SeaField):
 
     def to_json(self):
-        return dict(x=self.max_x, y=self.max_y, data=[[cell.x, cell.y, cell.value] for cell in self.cells])
+        return dict(x=self.max_x, y=self.max_y, data=[[cell.x, cell.y, cell.value] for cell in self._cells])
+
+    def get_values_list(self):
+        return [cell.value for cell in self._cells]
 
     @staticmethod
     def from_json(json_data):
@@ -26,15 +29,6 @@ class SeaFieldJSON(SeaField):
         return field
 
 
-class SeaPlayground2(SeaPlayground):
-    @staticmethod
-    def make_shoot(target_field, enemy_field):
-        x, y = SeaPlayground.find_target(target_field)
-        answer = SeaPlayground.income_shoot(enemy_field, x, y)
-        SeaPlayground.target_answer(target_field, x, y, answer)
-        return x, y, answer
-
-
 @app.route('/')
 def index():
     session.clear()
@@ -46,7 +40,7 @@ def set_all_ships_random(player):
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
     session[f'{player}_field'] = field.to_json()
-    return jsonify([cell.value for cell in field.cells])
+    return jsonify(field.get_values_list())
 
 
 @app.route('/user_shoot', methods=['POST'])
@@ -55,7 +49,7 @@ def user_shoot():
 
     try:
         x, y = (lambda x, y: (int(x), int(y)))(*request.form.values())
-        resp = 'hit' if SeaPlayground.income_shoot(field, x, y) else 'miss'
+        resp = 'hit' if SeaPlayground.income_shoot(field, x, y) in (Cell.HIT, Cell.KILLED) else 'miss'
     except IncorrectCoordinate as e:
         return str(e)
     except (ValueError, TypeError):
@@ -68,7 +62,8 @@ def user_shoot():
 def computer_shoot():
     computer_targets = SeaFieldJSON.from_session('computer_targets')
     user_field = SeaFieldJSON.from_session('user_field')
-    x, y, answer = SeaPlayground2.make_shoot(computer_targets, user_field)
+    x, y, answer = ComputerPlayer.make_shoot(computer_targets, user_field)
+    answer = answer in (Cell.HIT, Cell.KILLED)
     return jsonify(dict(x=x, y=y, answer=answer))
 
 
