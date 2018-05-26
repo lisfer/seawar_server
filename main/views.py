@@ -32,7 +32,9 @@ class SeaFieldJSON(SeaField):
 @app.route('/')
 def index():
     session.clear()
-    return render_template('index.html')
+    constants = dict(EMPTY=Cell.EMPTY, SHIP=Cell.SHIP, BORDER=Cell.BORDER, MAX_X=10, MAX_Y=10,
+                     HIT=Cell.HIT, MISSED=Cell.MISSED)
+    return render_template('index.html', constants=constants)
 
 
 @app.route('/init_ship/<player>')

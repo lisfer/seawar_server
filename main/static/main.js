@@ -1,5 +1,3 @@
-const FIELD = {EMPTY: 0, SHIP: 10, BORDER: 1, MAX_X: 10, MAX_Y: 10, HIT: 'hit', MISS: 'miss'};
-
 let createField = (field) => {
     let cells = '<table>';
     for(let i = 0; i < 10; i++) {

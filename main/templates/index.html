@@ -35,6 +35,9 @@
     <script src="/static/main.js"></script>
 </head>
 <body>
+    <script type="application/javascript">
+        const FIELD = { {% for k, v in constants.items() %}{{k}}: {{v}}, {%endfor %} }
+    </script>
     <div class="seaField">
         <div class="playerName">Player</div>
         <div id="fieldUser"></div>
