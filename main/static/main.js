@@ -39,9 +39,9 @@ let allowShoots = (field) => {
             data: {x: cell.x, y: cell.y},
             success: (data) => {
                 if (data == FIELD.HIT) {
-                    $(cell).addClass('hit');
+                    $(cell).addClass('hit shooted');
                 } else if (data == FIELD.MISS) {
-                    $(cell).addClass('miss');
+                    $(cell).addClass('miss shooted');
                     computerShoot();
                 } else {
                     console.log(data);
@@ -58,7 +58,7 @@ let computerShoot = () => {
         async: false,
         success: (data) => {
             cellN = data.y * FIELD.MAX_X + data.x;
-            $($('#fieldUser td')[cellN]).addClass(data.answer ? (computerShoot(), FIELD.HIT) : FIELD.MISS);
+            $($('#fieldUser td')[cellN]).addClass(data.answer ? (computerShoot(), FIELD.HIT + ' shooted') : FIELD.MISS + ' shooted');
         }
     })
 }
