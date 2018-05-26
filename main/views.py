@@ -72,8 +72,12 @@ def computer_shoot():
     computer_targets = SeaFieldJSON.from_session('computer_targets')
     user_field = SeaFieldJSON.from_session('user_field')
     x, y, answer = ComputerPlayer.make_shoot(computer_targets, user_field)
-    answer = answer in (Cell.HIT, Cell.KILLED)
-    return jsonify(dict(x=x, y=y, answer=answer))
+    resp=dict(x=x, y=y, shoot=answer)
+    if answer == Cell.KILLED:
+        cells = SeaPlayground._find_ship_cells(user_field, x, y)
+        border = SeaPlayground._find_border_cells(user_field, *SeaPlayground._find_ship_vector(cells))
+        resp['border'] = border
+    return jsonify(resp)
 
 
 @app.after_request

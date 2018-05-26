@@ -65,7 +65,14 @@ let computerShoot = () => {
         async: false,
         success: (data) => {
             cellN = data.y * FIELD.MAX_X + data.x;
-            $($('#fieldUser td')[cellN]).addClass(data.answer ? (computerShoot(), 'hit shooted') : 'miss shooted');
+            $($('#fieldUser td')[cellN]).addClass((data.shoot == FIELD.KILLED | data.shoot == FIELD.HIT) ? (computerShoot(), 'hit') : 'miss');
+            if (data.shoot == FIELD.KILLED) {
+                let fieldCells = $('#fieldUser td');
+                for (let i in data.border) {
+                    let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
+                    $(fieldCells[cellN]).addClass('border');
+                }
+            }
         }
     })
 }
