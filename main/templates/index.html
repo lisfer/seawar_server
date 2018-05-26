@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Sea War</title>
+    <!---
+        missed: \2734
+        hit: \2715 (x)
+        border: \2022 (bold dot)
+        -->
     <style>
         td {
             width: 20px;
@@ -20,15 +25,26 @@
             text-align: center;
             font-weight: bold;
         }
+        .border {
+            background-color: #cccccc;
+        }
+        .border:after{
+            content: '\2022';
+            margin-left: 5px;
+        }
         .hit {
             background-color: red !important;
+        }
+        .hit:after {
+            content: '\2715';
+            margin-left: 5px;
         }
         .miss {
             background-color: #cccccc !important;
         }
-        .shooted:after {
-            content: 'x';
-            margin-left: 6px;
+        .miss:after {
+            content: '\29BF';
+            margin-left: 5px;
         }
     </style>
     <script src="/static/jquery-3.3.1.min.js"></script>

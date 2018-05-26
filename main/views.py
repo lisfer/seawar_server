@@ -33,7 +33,7 @@ class SeaFieldJSON(SeaField):
 def index():
     session.clear()
     constants = dict(EMPTY=Cell.EMPTY, SHIP=Cell.SHIP, BORDER=Cell.BORDER, MAX_X=10, MAX_Y=10,
-                     HIT=Cell.HIT, MISSED=Cell.MISSED)
+                     HIT=Cell.HIT, MISSED=Cell.MISSED, KILLED=Cell.KILLED)
     return render_template('index.html', constants=constants)
 
 
@@ -51,13 +51,20 @@ def user_shoot():
 
     try:
         x, y = (lambda x, y: (int(x), int(y)))(*request.form.values())
-        resp = 'hit' if SeaPlayground.income_shoot(field, x, y) in (Cell.HIT, Cell.KILLED) else 'miss'
+        resp = SeaPlayground.income_shoot(field, x, y)
     except IncorrectCoordinate as e:
         return str(e)
     except (ValueError, TypeError):
         return f'Invalid coordinates {x} : {y}'
 
-    return resp
+    if resp == Cell.KILLED:
+        cells = SeaPlayground._find_ship_cells(field, x, y)
+        border = SeaPlayground._find_border_cells(field, *SeaPlayground._find_ship_vector(cells))
+        resp = dict(shoot=resp, border=border)
+    else:
+        resp = dict(shoot=resp)
+
+    return jsonify(resp)
 
 
 @app.route('/computer_shoot', methods=['POST'])
