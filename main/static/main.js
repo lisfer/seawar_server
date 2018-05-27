@@ -12,14 +12,32 @@ let createField = (field) => {
     $(field).html(cells)
 };
 
-let setShips = (field, user) => {
+let initUserShipsField = (field) => {
+    createField(field);
     $.ajax({
-        url: '/init_ship/' + (user ? 'user' : 'computer'),
+        url: '/init_user_ship',
+        method: 'post',
         async: false,
         success: (data) => {
             let cells = field.find('td');
             for (i in data) {
                 data[i] == FIELD.SHIP ? $(cells[i]).addClass('shipCell'): '';
+                cells[i].x = i % FIELD.MAX_X;
+                cells[i].y = Math.floor(i / FIELD.MAX_X);
+            }
+        }
+    });
+};
+
+let initEnemyShipsField = (field, user) => {
+    createField(field);
+    $.ajax({
+        url: '/init_enemy_ship',
+        method: 'post',
+        async: false,
+        success: (data) => {
+            let cells = field.find('td');
+            for (let i = 0; i < data.cellsNumber; i ++) {
                 cells[i].x = i % FIELD.MAX_X;
                 cells[i].y = Math.floor(i / FIELD.MAX_X);
             }
@@ -80,12 +98,10 @@ let computerShoot = () => {
 $(document).ready(() => {
 
     let userField = $('#fieldUser');
-    createField(userField);
-    setShips(userField, true);
+    initUserShipsField(userField);
 
     let compField = $('#fieldComp');
-    createField(compField);
-    setShips(compField);
+    initEnemyShipsField(compField);
 
     allowShoots(compField);
 

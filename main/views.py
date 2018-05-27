@@ -12,6 +12,9 @@ class SeaFieldJSON(SeaField):
     def get_values_list(self):
         return [cell.value for cell in self._cells]
 
+    def get_number_of_cells(self):
+        return self.max_x * self.max_y
+
     @staticmethod
     def from_json(json_data):
         if json_data:
@@ -37,12 +40,20 @@ def index():
     return render_template('index.html', constants=constants)
 
 
-@app.route('/init_ship/<player>')
-def set_all_ships_random(player):
+@app.route('/init_user_ship', methods=['POST'])
+def set_user_ships():
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
-    session[f'{player}_field'] = field.to_json()
+    session['user_field'] = field.to_json()
     return jsonify(field.get_values_list())
+
+
+@app.route('/init_enemy_ship', methods=['POST'])
+def set_enemy_ships():
+    field = SeaFieldJSON()
+    SeaPlayground.put_ships_random(field)
+    session['computer_field'] = field.to_json()
+    return jsonify(dict(cellsNumber=field.get_number_of_cells()))
 
 
 @app.route('/user_shoot', methods=['POST'])
