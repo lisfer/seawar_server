@@ -52,7 +52,7 @@ class ComputerPlayerJSON(ComputerPlayer, SeaFieldJSON):
 def index():
     session.clear()
     constants = dict(EMPTY=Cell.EMPTY, SHIP=Cell.SHIP, BORDER=Cell.BORDER, MAX_X=10, MAX_Y=10,
-                     HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED)
+                     HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED, WIN=SIGNALS.WIN)
     return render_template('index.html', constants=constants)
 
 

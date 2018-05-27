@@ -54,16 +54,16 @@ let allowShoots = (field) => {
             method: 'post',
             data: {x: cell.x, y: cell.y},
             success: (data) => {
-                if (data.shoot == FIELD.KILLED) {
-                    let fieldCells = $('#fieldComp td');
-                    for (let i in data.border) {
-                        let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
-                        $(fieldCells[cellN]).addClass('border').unbind('click');
-                    }
+                let fieldCells = $('#fieldComp td');
+                for (let i in data.border) {
+                    let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
+                    $(fieldCells[cellN]).addClass('border').unbind('click');
                 }
-                if (data.shoot === FIELD.HIT |  data.shoot === FIELD.KILLED) {
+                if (data.shoot === FIELD.HIT |  data.shoot === FIELD.KILLED |  data.shoot === FIELD.WIN) {
                     $(cell).addClass('hit');
-                    $(cell).unbind('click')
+                    if (data.shoot === FIELD.WIN) {
+                        return gameWin();
+                    } else $(cell).unbind('click');
                 } else if (data.shoot === FIELD.MISSED) {
                     $(cell).addClass('miss');
                     $(cell).unbind('click');
@@ -75,6 +75,16 @@ let allowShoots = (field) => {
         })
     })
 };
+
+let gameWin = () => {
+    $('#fieldComp td').unbind('click');
+    setTimeout(() => alert('WINNER!!!'), 300);
+}
+
+let gameLoose = () => {
+    $('#fieldComp td').unbind('click');
+    setTimeout(() => alert('GAME OVER!!!'), 300);
+}
 
 let computerShoot = () => {
     $.ajax({
@@ -92,6 +102,7 @@ let computerShoot = () => {
                 let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
                 $(fieldCells[cellN]).addClass('border');
             }
+            if (data.shoot == FIELD.WIN) return gameLoose();
             if (hit) computerShoot();
         }
     })
