@@ -78,12 +78,14 @@ let allowShoots = (field) => {
 
 let gameWin = () => {
     $('#fieldComp td').unbind('click');
-    setTimeout(() => alert('WINNER!!!'), 300);
+    $('#fieldComp').addClass('loser');
+    $('#fieldUser').addClass('winner');
 }
 
 let gameLoose = () => {
     $('#fieldComp td').unbind('click');
-    setTimeout(() => alert('GAME OVER!!!'), 300);
+    $('#fieldComp').addClass('winner');
+    $('#fieldUser').addClass('loser');
 }
 
 let computerShoot = () => {

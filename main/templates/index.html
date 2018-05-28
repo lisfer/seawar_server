@@ -3,11 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Sea War</title>
-    <!---
-        missed: \2734
-        hit: \2715 (x)
-        border: \2022 (bold dot)
-        -->
     <style>
         td {
             width: 20px;
@@ -46,6 +41,12 @@
         .miss:after {
             content: '\29BF';
             margin-left: 5px;
+        }
+        .winner {
+            box-shadow: 0px 1px 10px 10px #f9fb82;
+        }
+        .loser {
+            opacity: 0.4;
         }
     </style>
     <script src="/static/jquery-3.3.1.min.js"></script>
