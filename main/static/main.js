@@ -54,16 +54,16 @@ let allowShoots = (field) => {
             method: 'post',
             data: {x: cell.x, y: cell.y},
             success: (data) => {
-                if (data.shoot == FIELD.KILLED) {
-                    let fieldCells = $('#fieldComp td');
-                    for (let i in data.border) {
-                        let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
-                        $(fieldCells[cellN]).addClass('border').unbind('click');
-                    }
+                let fieldCells = $('#fieldComp td');
+                for (let i in data.border) {
+                    let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
+                    $(fieldCells[cellN]).addClass('border').unbind('click');
                 }
-                if (data.shoot === FIELD.HIT |  data.shoot === FIELD.KILLED) {
+                if (data.shoot === FIELD.HIT |  data.shoot === FIELD.KILLED |  data.shoot === FIELD.WIN) {
                     $(cell).addClass('hit');
-                    $(cell).unbind('click')
+                    if (data.shoot === FIELD.WIN) {
+                        return gameWin();
+                    } else $(cell).unbind('click');
                 } else if (data.shoot === FIELD.MISSED) {
                     $(cell).addClass('miss');
                     $(cell).unbind('click');
@@ -76,21 +76,36 @@ let allowShoots = (field) => {
     })
 };
 
+let gameWin = () => {
+    $('#fieldComp td').unbind('click');
+    $('#fieldComp').addClass('loser');
+    $('#fieldUser').addClass('winner');
+}
+
+let gameLoose = () => {
+    $('#fieldComp td').unbind('click');
+    $('#fieldComp').addClass('winner');
+    $('#fieldUser').addClass('loser');
+}
+
 let computerShoot = () => {
     $.ajax({
         url: '/computer_shoot',
         method: 'post',
         async: false,
         success: (data) => {
-            cellN = data.y * FIELD.MAX_X + data.x;
-            $($('#fieldUser td')[cellN]).addClass((data.shoot == FIELD.KILLED | data.shoot == FIELD.HIT) ? (computerShoot(), 'hit') : 'miss');
-            if (data.shoot == FIELD.KILLED) {
-                let fieldCells = $('#fieldUser td');
-                for (let i in data.border) {
-                    let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
-                    $(fieldCells[cellN]).addClass('border');
-                }
+            let fieldCells = $('#fieldUser td');
+            let hit = (data.shoot == FIELD.KILLED | data.shoot == FIELD.HIT);
+            for (let i in data.cells) {
+                cellN = data.cells[i][1] * FIELD.MAX_X + data.cells[i][0];
+                $(fieldCells[cellN]).addClass(hit ?  'hit' : 'miss');
             }
+            for (i in data.border) {
+                let cellN = data.border[i][1] * FIELD.MAX_X + data.border[i][0];
+                $(fieldCells[cellN]).addClass('border');
+            }
+            if (data.shoot == FIELD.WIN) return gameLoose();
+            if (hit) computerShoot();
         }
     })
 }
