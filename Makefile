@@ -4,3 +4,6 @@ run:
 heroku:
 	export FLASK_APP=main; \
 	flask run -h 0.0.0.0 -p $(PORT) --reload
+
+deploy:
+	git push heroku master
