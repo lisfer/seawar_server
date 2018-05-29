@@ -144,11 +144,3 @@ def computer_shoot():
     resp = dict(shoot=resp['signal'], border=border, cells=resp['cells'])
 
     return jsonify(resp)
-
-
-@app.after_request
-def save_session(response):
-    if g.get('to_session'):
-        for name, obj in g.to_session.items():
-            session[name] = obj.to_json()
-    return response
