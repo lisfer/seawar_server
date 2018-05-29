@@ -4,4 +4,5 @@ itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.0
 Werkzeug==0.14.1
--e git+git://github.com/lisfer/seawar_skeleton.git#egg=seawar_skeleton
+git+git://github.com/lisfer/seawar_skeleton.git#egg=seawar_skeleton
+git+git://github.com/lisfer/FlaskAutoDocs.git#egg=FlaskAutoDocs

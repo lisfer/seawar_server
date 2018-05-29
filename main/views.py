@@ -47,6 +47,13 @@ class ComputerPlayerJSON(ComputerPlayer, SeaFieldJSON):
         return comp
 
 
+@app.route('/api/docs')
+def docs():
+    print(app)
+
+
+
+    return app.api_docs.html()
 
 @app.route('/')
 def index():
@@ -57,7 +64,14 @@ def index():
 
 
 @app.route('/init_user_ship', methods=['POST'])
+@app.api_docs.doc
 def set_user_ships():
+    """
+    Init user Field. Randomly sets ships on it
+
+    :return: List with values of Cells: (Cell.EMPTY or Cell.SHIP).
+        Field is reduced to one list line by line: [(x=0, y=0), (x=1, y=0), (x=2, y=0),...(x=0, y=1), (x=1, y1=1), ..]
+    """
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
     session['user_field'] = field.to_json()
@@ -65,7 +79,13 @@ def set_user_ships():
 
 
 @app.route('/init_enemy_ship', methods=['POST'])
+@app.api_docs.doc
 def set_enemy_ships():
+    """
+       Init computer Field. Randomly sets ships on it
+
+       :return: dict(cellsNumber = total number of cells on the field)
+       """
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
     session['computer_field'] = field.to_json()
@@ -73,7 +93,19 @@ def set_enemy_ships():
 
 
 @app.route('/user_shoot', methods=['POST'])
+@app.api_docs.doc
 def user_shoot():
+    """
+    Makes shoot to enemy field to specified coordinates
+
+    :api_param x: x part of cell-coordinate
+    :api_param y: y part of cell-coordinate
+    :return: dict(
+        shoot => Result of the shoot (
+            HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED, WIN=SIGNALS.WIN)
+        cells => List of cells of the killed ship (if it was killed) otherwise - cells where shoot was made
+        border => List of border cells for the ship (if the ship was killed)
+    """
     field = SeaFieldJSON.from_session('computer_field')
 
     try:
@@ -92,7 +124,17 @@ def user_shoot():
 
 
 @app.route('/computer_shoot', methods=['POST'])
+@app.api_docs.doc
 def computer_shoot():
+    """
+    Request for computer shoot. Updates field of the player on server side
+
+    :return: dict(
+        shoot => Result of the shoot (
+            HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED, WIN=SIGNALS.WIN)
+        cells => List of cells of the killed ship (if it was killed) otherwise - cells where shoot was made
+        border => List of border cells for the ship (if the ship was killed)
+    """
     computer_player = ComputerPlayerJSON.from_session('computer_targets')
     user_field = SeaFieldJSON.from_session('user_field')
     resp = SeaPlayground.make_shoot_by_computer(computer_player, user_field)
