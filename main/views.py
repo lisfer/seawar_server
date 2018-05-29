@@ -10,7 +10,7 @@ class SeaFieldJSON(SeaField):
         return dict(x=self.max_x, y=self.max_y, data=[[cell.x, cell.y, cell.value] for cell in self._cells])
 
     def get_values_list(self):
-        return [cell.value for cell in self._cells]
+        return [dict(x=cell.x, y=cell.y, value=cell.value) for cell in self._cells]
 
     def get_number_of_cells(self):
         return self.max_x * self.max_y
