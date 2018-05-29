@@ -63,14 +63,16 @@ def index():
     return render_template('index.html', constants=constants)
 
 
-@app.route('/init_user_ship', methods=['POST'])
+@app.route('/api/init_user_ship', methods=['POST'])
 @app.api_docs.doc
 def set_user_ships():
     """
     Init user Field. Randomly sets ships on it
 
-    :return: List with values of Cells: (Cell.EMPTY or Cell.SHIP).
-        Field is reduced to one list line by line: [(x=0, y=0), (x=1, y=0), (x=2, y=0),...(x=0, y=1), (x=1, y1=1), ..]
+    :return: List with cell dicts:
+        [dict(x, y, value)]
+        Field is reduced to one list line by line in such way:
+            [(x=0, y=0), (x=1, y=0), (x=2, y=0),...(x=0, y=1), (x=1, y1=1), ..]
     """
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
@@ -78,21 +80,21 @@ def set_user_ships():
     return jsonify(field.get_values_list())
 
 
-@app.route('/init_enemy_ship', methods=['POST'])
+@app.route('/api/init_enemy_ship', methods=['POST'])
 @app.api_docs.doc
 def set_enemy_ships():
     """
        Init computer Field. Randomly sets ships on it
 
-       :return: dict(cellsNumber = total number of cells on the field)
+       :return: True
        """
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
     session['computer_field'] = field.to_json()
-    return jsonify(dict(cellsNumber=field.get_number_of_cells()))
+    return jsonify(True)
 
 
-@app.route('/user_shoot', methods=['POST'])
+@app.route('/api/user_shoot', methods=['POST'])
 @app.api_docs.doc
 def user_shoot():
     """
@@ -123,7 +125,7 @@ def user_shoot():
     return jsonify(resp)
 
 
-@app.route('/computer_shoot', methods=['POST'])
+@app.route('/api/computer_shoot', methods=['POST'])
 @app.api_docs.doc
 def computer_shoot():
     """

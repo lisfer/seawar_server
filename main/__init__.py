@@ -23,6 +23,5 @@ def save_session(response):
 if app.config['DEVELOP']:
     @app.after_request
     def add_cross_origin(response):
-        print(response.headers)
         response.headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
         return response
