@@ -1,4 +1,4 @@
-from flask import render_template, jsonify, session, request, g
+from flask import render_template, jsonify, session, request, g, Response
 from seawar_skeleton import SeaPlayground, SeaField, IncorrectCoordinate, ComputerPlayer, Cell, SIGNALS
 
 from main import app
@@ -9,8 +9,9 @@ class SeaFieldJSON(SeaField):
     def to_json(self):
         return dict(x=self.max_x, y=self.max_y, data=[[cell.x, cell.y, cell.value] for cell in self._cells])
 
-    def get_values_list(self):
-        return [dict(x=cell.x, y=cell.y, value=cell.value) for cell in self._cells]
+    def get_values_list(self, cells=None):
+        filter = (lambda cell: (cell.x, cell.y) in cells) if cells else lambda x: True
+        return [dict(x=cell.x, y=cell.y, value=cell.value) for cell in self._cells if filter(cell)]
 
     def get_number_of_cells(self):
         return self.max_x * self.max_y
@@ -103,7 +104,7 @@ def user_shoot():
     :api_param x: x part of cell-coordinate
     :api_param y: y part of cell-coordinate
     :return: dict(
-        shoot => Result of the shoot (
+        signal => Result of the shoot (
             HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED, WIN=SIGNALS.WIN)
         cells => List of cells of the killed ship (if it was killed) otherwise - cells where shoot was made
         border => List of border cells for the ship (if the ship was killed)
@@ -111,16 +112,17 @@ def user_shoot():
     field = SeaFieldJSON.from_session('computer_field')
 
     try:
+        # TODO: check when vars are absent
         x, y = (lambda x, y: (int(x), int(y)))(*request.form.values())
         resp = SeaPlayground.income_shoot_to(field, x, y)
     except IncorrectCoordinate as e:
-        return str(e)
+        return Response(str(e), status=400)
     except (ValueError, TypeError):
-        return f'Invalid coordinates {x} : {y}'
+        return Response("Required parameters are absent or invalid", status=400)
 
-    border = (field._find_border_cells(*field.find_ship_vector(resp['cells']))
+    border = (field.get_values_list(field._find_border_cells(*field.find_ship_vector(resp['cells'])))
               if resp['signal'] == SIGNALS.KILLED else [])
-    resp = dict(shoot=resp['signal'], border=border)
+    resp.update({'border': border, 'cells': field.get_values_list(resp['cells'])})
 
     return jsonify(resp)
 
