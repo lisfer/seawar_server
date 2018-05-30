@@ -7,7 +7,10 @@ from main import app
 class SeaFieldJSON(SeaField):
 
     def to_json(self):
-        return dict(x=self.max_x, y=self.max_y, data=[[cell.x, cell.y, cell.value] for cell in self._cells])
+        return dict(
+            max_x=self.max_x,
+            max_y=self.max_y,
+            cells=[dict(x=cell.x, y=cell.y, value=cell.value) for cell in self._cells])
 
     def get_values_list(self, cells=None):
         filter = (lambda cell: (cell.x, cell.y) in cells) if cells else lambda x: True
@@ -78,7 +81,7 @@ def set_user_ships():
     field = SeaFieldJSON()
     SeaPlayground.put_ships_random(field)
     session['user_field'] = field.to_json()
-    return jsonify(field.get_values_list())
+    return jsonify(session['user_field'])
 
 
 @app.route('/api/init_enemy_ship', methods=['POST'])
