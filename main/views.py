@@ -1,14 +1,19 @@
+from collections import namedtuple
+
 from flask import render_template, jsonify, session, request, g, Response
 from seawar_skeleton import Field, ShipService, CoordOutOfRange
 
 from main import app
 
 
+SIGNALS = namedtuple('SIGNALS', ['MISS', 'HIT', 'KILLED', 'WIN'])('miss', 'hit', 'killed', 'win')
+
+
 class FieldJSON(Field):
 
     @staticmethod
     def cell_to_json(cell):
-        return dict(x=cell.x, y=cell.y, value=cell.value)
+        return (cell.x, cell.y, cell.value, cell.is_shooted)
 
     def to_json(self):
         return dict(
@@ -22,8 +27,8 @@ class FieldJSON(Field):
     @classmethod
     def from_json(cls, json_data):
         if json_data:
-            field = cls(json_data['x'], json_data['y'])
-            [field.set(x, y, v) for x, y, v in json_data['data']]
+            field = cls(json_data['max_x'], json_data['max_y'])
+            [field.set(x, y, v, s) for x, y, v, s in json_data['cells']]
         else:
             field = cls()
         return field
@@ -89,8 +94,8 @@ def set_enemy_ships():
 
        :return:
            {
-               "max_x": <int> - width of the field
-               "max_y": <int> - heigth of the field
+               :"max_x" <int>: width of the field
+               :"max_y" <int>: height of the field
             }
        """
     field = FieldJSON()
@@ -107,24 +112,32 @@ def user_shoot():
 
     :api_param x: x part of cell-coordinate
     :api_param y: y part of cell-coordinate
-    :return: dict(
-        signal => Result of the shoot (
-            HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED, WIN=SIGNALS.WIN)
-        cells => List of cells of the killed ship (if it was killed) otherwise - cells where shoot was made
-        border => List of border cells for the ship (if the ship was killed)
+    :return:
+        {
+            :"signal" <str>: 'missed' / 'hit' / 'killed' / 'win'
+            :"ships" <list>: [[x, y], ...] or [] - list of cells that belongs to killed ship (if it was killed)
+            :"boders" <list>: [[x, y]...] or [] - list of cells that surround killed ship (if it was killed)
+        }
     """
     field = FieldJSON.from_session('computer_field')
 
     try:
         # TODO: check when vars are absent
         x, y = (lambda x, y: (int(x), int(y)))(*request.form.values())
-        resp = ShipService.shoot_to(field, x, y)
+        signal = ShipService.shoot_to(field, x, y)
     except CoordOutOfRange as e:
         return Response(str(e), status=400)
     except (ValueError, TypeError):
         return Response("Required parameters are absent or invalid", status=400)
 
-    return jsonify(resp)
+    if signal:
+        response = ShipService.get_ship_if_killed(field, x, y)
+        signal = response and (SIGNALS.WIN if ShipService.is_fleet_killed(field) else SIGNALS.KILLED) or SIGNALS.HIT
+    else:
+        signal, response = SIGNALS.MISS, {}
+
+    response.update(dict(signal=signal, x=x, y=y))
+    return jsonify(response)
 
 
 @app.route('/api/computer_shoot', methods=['POST'])
