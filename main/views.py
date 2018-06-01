@@ -1,23 +1,23 @@
 from flask import render_template, jsonify, session, request, g, Response
-from seawar_skeleton import SeaPlayground, SeaField, IncorrectCoordinate, ComputerPlayer, Cell, SIGNALS
+from seawar_skeleton import Field, ShipService, CoordOutOfRange
 
 from main import app
 
 
-class SeaFieldJSON(SeaField):
+class FieldJSON(Field):
+
+    @staticmethod
+    def cell_to_json(cell):
+        return dict(x=cell.x, y=cell.y, value=cell.value)
 
     def to_json(self):
         return dict(
             max_x=self.max_x,
             max_y=self.max_y,
-            cells=[dict(x=cell.x, y=cell.y, value=cell.value) for cell in self._cells])
+            cells=[*map(self.cell_to_json, self.cells)])
 
-    def get_values_list(self, cells=None):
-        filter = (lambda cell: (cell.x, cell.y) in cells) if cells else lambda x: True
-        return [dict(x=cell.x, y=cell.y, value=cell.value) for cell in self._cells if filter(cell)]
-
-    def get_number_of_cells(self):
-        return self.max_x * self.max_y
+    def get_ships(self):
+        return [(cell.x, cell.y) for cell in self.cells if cell.is_ship]
 
     @classmethod
     def from_json(cls, json_data):
@@ -36,16 +36,16 @@ class SeaFieldJSON(SeaField):
         return field
 
 
-class ComputerPlayerJSON(ComputerPlayer, SeaFieldJSON):
+class ComputerPlayerJSON(FieldJSON):
 
     def to_json(self):
-        return SeaFieldJSON.to_json(self.target_field)
+        return FieldJSON.to_json(self.target_field)
 
     @classmethod
     def from_json(cls, json_data):
         if json_data:
             comp = cls(json_data['x'], json_data['y'])
-            comp.target_field = SeaFieldJSON.from_json(json_data)
+            comp.target_field = FieldJSON.from_json(json_data)
         else:
             comp = cls()
         return comp
@@ -53,18 +53,13 @@ class ComputerPlayerJSON(ComputerPlayer, SeaFieldJSON):
 
 @app.route('/api/docs')
 def docs():
-    print(app)
-
-
-
     return app.api_docs.html()
+
 
 @app.route('/')
 def index():
     session.clear()
-    constants = dict(EMPTY=Cell.EMPTY, SHIP=Cell.SHIP, BORDER=Cell.BORDER, MAX_X=10, MAX_Y=10,
-                     HIT=SIGNALS.HITTING, MISSED=SIGNALS.MISS, KILLED=SIGNALS.KILLED, WIN=SIGNALS.WIN)
-    return render_template('index.html', constants=constants)
+    return render_template('index.html', constants={})
 
 
 @app.route('/api/init_user_ship', methods=['POST'])
@@ -73,15 +68,17 @@ def set_user_ships():
     """
     Init user Field. Randomly sets ships on it
 
-    :return: List with cell dicts:
-        [dict(x, y, value)]
-        Field is reduced to one list line by line in such way:
-            [(x=0, y=0), (x=1, y=0), (x=2, y=0),...(x=0, y=1), (x=1, y1=1), ..]
+    :return:
+        {
+            "max_x": <int> - width of the field
+            "max_y": <int> - heigth of the field
+            "cells": <List(Tuple(int, int)))> - list of cells that contain ships
+         }
     """
-    field = SeaFieldJSON()
-    SeaPlayground.put_ships_random(field)
+    field = FieldJSON()
+    ShipService.put_ships_random(field)
     session['user_field'] = field.to_json()
-    return jsonify(session['user_field'])
+    return jsonify({'max_x': field.max_x, 'max_y': field.max_y, 'ships': field.get_ships()})
 
 
 @app.route('/api/init_enemy_ship', methods=['POST'])
@@ -90,12 +87,16 @@ def set_enemy_ships():
     """
        Init computer Field. Randomly sets ships on it
 
-       :return: True
+       :return:
+           {
+               "max_x": <int> - width of the field
+               "max_y": <int> - heigth of the field
+            }
        """
-    field = SeaFieldJSON()
-    SeaPlayground.put_ships_random(field)
+    field = FieldJSON()
+    ShipService.put_ships_random(field)
     session['computer_field'] = field.to_json()
-    return jsonify(True)
+    return jsonify({'max_x': field.max_x, 'max_y': field.max_y})
 
 
 @app.route('/api/user_shoot', methods=['POST'])
@@ -112,20 +113,16 @@ def user_shoot():
         cells => List of cells of the killed ship (if it was killed) otherwise - cells where shoot was made
         border => List of border cells for the ship (if the ship was killed)
     """
-    field = SeaFieldJSON.from_session('computer_field')
+    field = FieldJSON.from_session('computer_field')
 
     try:
         # TODO: check when vars are absent
         x, y = (lambda x, y: (int(x), int(y)))(*request.form.values())
-        resp = SeaPlayground.income_shoot_to(field, x, y)
-    except IncorrectCoordinate as e:
+        resp = ShipService.shoot_to(field, x, y)
+    except CoordOutOfRange as e:
         return Response(str(e), status=400)
     except (ValueError, TypeError):
         return Response("Required parameters are absent or invalid", status=400)
-
-    border = (field.get_values_list(field._find_border_cells(*field.find_ship_vector(resp['cells'])))
-              if resp['signal'] == SIGNALS.KILLED else [])
-    resp.update({'border': border, 'cells': field.get_values_list(resp['cells'])})
 
     return jsonify(resp)
 
@@ -143,7 +140,7 @@ def computer_shoot():
         border => List of border cells for the ship (if the ship was killed)
     """
     computer_player = ComputerPlayerJSON.from_session('computer_targets')
-    user_field = SeaFieldJSON.from_session('user_field')
+    user_field = FieldJSON.from_session('user_field')
     resp = SeaPlayground.make_shoot_by_computer(computer_player, user_field)
 
     border = (user_field._find_border_cells(*user_field.find_ship_vector(resp['cells']))
