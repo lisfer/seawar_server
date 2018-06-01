@@ -1,9 +1,9 @@
 from collections import namedtuple
 
 from flask import render_template, jsonify, session, request, g, Response
-from seawar_skeleton import Field, ShipService, CoordOutOfRange
+from seawar_core import Field, ShipService, CoordOutOfRange
 
-from main import app
+from seawar_server import app
 
 
 SIGNALS = namedtuple('SIGNALS', ['MISS', 'HIT', 'KILLED', 'WIN'])('miss', 'hit', 'killed', 'win')
