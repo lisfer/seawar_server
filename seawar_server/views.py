@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from flask import render_template, jsonify, session, request, g, Response
-from seawar_core import Field, ShipService, CoordOutOfRange
+from seawar_core import Field, ShipService, CoordOutOfRange, TargetField
 
 from seawar_server import app
 
@@ -28,7 +28,7 @@ class FieldJSON(Field):
     def from_json(cls, json_data):
         if json_data:
             field = cls(json_data['max_x'], json_data['max_y'])
-            [field.set(x, y, v, s) for x, y, v, s in json_data['cells']]
+            [field.set(*data) for data in json_data['cells']]
         else:
             field = cls()
         return field
@@ -41,19 +41,25 @@ class FieldJSON(Field):
         return field
 
 
-class ComputerPlayerJSON(FieldJSON):
+class TargetFieldJSON(TargetField, FieldJSON):
 
-    def to_json(self):
-        return FieldJSON.to_json(self.target_field)
+    @staticmethod
+    def cell_to_json(cell):
+        return (cell.x, cell.y, cell.value)
 
-    @classmethod
-    def from_json(cls, json_data):
-        if json_data:
-            comp = cls(json_data['x'], json_data['y'])
-            comp.target_field = FieldJSON.from_json(json_data)
-        else:
-            comp = cls()
-        return comp
+
+def make_shoot(user_field, x, y):
+    hit = ShipService.shoot_to(user_field, x, y)
+
+    if hit:
+        response = ShipService.get_ship_if_killed(user_field, x, y)
+        signal = response and (
+            SIGNALS.WIN if ShipService.is_fleet_killed(user_field) else SIGNALS.KILLED) or SIGNALS.HIT
+    else:
+        signal, response = SIGNALS.MISS, {}
+
+    response.update(dict(signal=signal, x=x, y=y))
+    return hit, response
 
 
 @app.route('/api/docs')
@@ -152,12 +158,14 @@ def computer_shoot():
         cells => List of cells of the killed ship (if it was killed) otherwise - cells where shoot was made
         border => List of border cells for the ship (if the ship was killed)
     """
-    computer_player = ComputerPlayerJSON.from_session('computer_targets')
+    target_field = TargetFieldJSON.from_session('computer_targets')
     user_field = FieldJSON.from_session('user_field')
-    resp = SeaPlayground.make_shoot_by_computer(computer_player, user_field)
 
-    border = (user_field._find_border_cells(*user_field.find_ship_vector(resp['cells']))
-              if resp['signal'] == SIGNALS.KILLED else [])
-    resp = dict(shoot=resp['signal'], border=border, cells=resp['cells'])
+    x, y = target_field.select_cell()
 
-    return jsonify(resp)
+    hit, response = make_shoot(user_field, x, y)
+    target_field.shoot_response(x, y, hit)
+    if response.get('border'):
+        target_field.mark_killed(response['border'])
+
+    return jsonify(response)

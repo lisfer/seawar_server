@@ -15,7 +15,8 @@ from .views import *
 @app.after_request
 def save_session(response):
     if g.get('to_session'):
-        for name, obj in g.to_session.items():
+        while g.to_session:
+            name, obj = g.to_session.popitem()
             session[name] = obj.to_json()
     return response
 
