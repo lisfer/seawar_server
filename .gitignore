@@ -2,3 +2,4 @@ venv
 .idea
 *.pyc
 TODO.md
+.DS_Store

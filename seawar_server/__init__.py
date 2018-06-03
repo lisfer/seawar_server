@@ -1,6 +1,10 @@
 from flask import Flask, g, session
 from flask_auto_docs import FlaskAutoDocs
 
+
+__version__ = '0.0.1'
+
+
 app = Flask(__name__)
 app.api_docs = FlaskAutoDocs(app)
 
