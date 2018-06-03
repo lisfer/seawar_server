@@ -107,6 +107,7 @@ def set_enemy_ships():
     field = FieldJSON()
     ShipService.put_ships_random(field)
     session['computer_field'] = field.to_json()
+    session.pop('computer_targets', None)           # cleaning targets field too
     return jsonify({'max_x': field.max_x, 'max_y': field.max_y})
 
 
