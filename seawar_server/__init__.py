@@ -2,7 +2,7 @@ from flask import Flask, g, session
 from flask_auto_docs import FlaskAutoDocs
 
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 
 app = Flask(__name__)
