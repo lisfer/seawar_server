@@ -137,13 +137,8 @@ def user_shoot():
     except (ValueError, TypeError):
         return Response("Required parameters are absent or invalid", status=400)
 
-    if signal:
-        response = ShipService.get_ship_if_killed(field, x, y)
-        signal = response and (SIGNALS.WIN if ShipService.is_fleet_killed(field) else SIGNALS.KILLED) or SIGNALS.HIT
-    else:
-        signal, response = SIGNALS.MISS, {}
+    hit, response = make_shoot(field, x, y)
 
-    response.update(dict(signal=signal, x=x, y=y))
     return jsonify(response)
 
 

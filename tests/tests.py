@@ -90,7 +90,6 @@ class TestShootShipUser(unittest.TestCase, TestShootShipBase):
     def setUp(self):
         self.app = seawar_server.app.test_client()
         self.url = '/api/user_shoot'
-        self.patch = []
 
     def test_shoot_outrange(self):
         resp = self.app.post(self.url, data=dict(x=1, y1=333))
@@ -109,3 +108,10 @@ class TestShootShipUser(unittest.TestCase, TestShootShipBase):
         resp = self.app.post(self.url, data=dict(y1=333))
         self.assertEqual(resp.status_code, 400)
         self.assertIn(b'absent or invalid', resp.data)
+
+
+class TestShootShipComp(unittest.TestCase, TestShootShipBase):
+
+    def setUp(self):
+        self.app = seawar_server.app.test_client()
+        self.url = '/api/computer_shoot'
