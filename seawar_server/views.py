@@ -13,7 +13,7 @@ class FieldJSON(Field):
 
     @staticmethod
     def cell_to_json(cell):
-        return (cell.x, cell.y, cell.value, cell.is_shooted)
+        return cell.x, cell.y, cell.value, cell.is_shooted
 
     def to_json(self):
         return dict(
@@ -45,7 +45,7 @@ class TargetFieldJSON(TargetField, FieldJSON):
 
     @staticmethod
     def cell_to_json(cell):
-        return (cell.x, cell.y, cell.value)
+        return cell.x, cell.y, cell.value
 
 
 def make_shoot(user_field, x, y):
@@ -131,13 +131,11 @@ def user_shoot():
     try:
         # TODO: check when vars are absent
         x, y = (lambda x, y: (int(x), int(y)))(*request.form.values())
-        signal = ShipService.shoot_to(field, x, y)
+        hit, response = make_shoot(field, x, y)
     except CoordOutOfRange as e:
         return Response(str(e), status=400)
     except (ValueError, TypeError):
         return Response("Required parameters are absent or invalid", status=400)
-
-    hit, response = make_shoot(field, x, y)
 
     return jsonify(response)
 

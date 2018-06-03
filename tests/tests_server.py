@@ -14,7 +14,7 @@ class TestApiInitFields(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json
         self.assertEqual(data.keys(), {'max_x', 'max_y', 'ships'})
-        self.assertEqual(len(data['ships']), 20) # total number of ship cells. For default 4-3-3-2-2-2-1-1-1-1 == 20
+        self.assertEqual(len(data['ships']), 20)  # total number of ship cells. For default 4-3-3-2-2-2-1-1-1-1 == 20
 
         self.assertEqual(len(data['ships'][0]), 2)
         self.assertEqual(type(data['ships'][0]), list)
@@ -27,7 +27,7 @@ class TestApiInitFields(unittest.TestCase):
         self.assertEqual(list(data.values()), [10, 10])
 
 
-class TestShootShipBase():
+class TestShootShipBase:
 
     def test_set_user_shoot_miss(self):
         with patch('seawar_server.TargetFieldJSON.select_cell', return_value=(3, 3)), \
@@ -41,8 +41,8 @@ class TestShootShipBase():
 
     def test_set_user_shoot_hit(self):
         with patch('seawar_server.TargetFieldJSON.select_cell', return_value=(3, 3)), \
-             patch('seawar_server.ShipService.shoot_to', return_value=True),\
-            patch('seawar_server.ShipService.get_ship_if_killed', return_value = {}):
+             patch('seawar_server.ShipService.shoot_to', return_value=True), \
+             patch('seawar_server.ShipService.get_ship_if_killed', return_value={}):
             resp = self.app.post(self.url, data=dict(x=3, y1=3))
         self.assertEqual(resp.status_code, 200)
 
@@ -53,10 +53,10 @@ class TestShootShipBase():
     def test_set_user_shoot_killed(self):
         ship = [[2, 2], [2, 3], [2, 4]]
         border = [[3, 2], [3, 3], [3, 4]]
-        with patch('seawar_server.TargetFieldJSON.select_cell', return_value=(3, 3)), \
-             patch('seawar_server.ShipService.shoot_to', return_value=True),\
-             patch('seawar_server.ShipService.get_ship_if_killed', return_value = {'ship': ship, 'border': border}), \
-             patch('seawar_server.ShipService.is_fleet_killed', return_value = False):
+        with (patch('seawar_server.TargetFieldJSON.select_cell', return_value=(3, 3)),
+                patch('seawar_server.ShipService.shoot_to', return_value=True),
+                patch('seawar_server.ShipService.get_ship_if_killed', return_value={'ship': ship, 'border': border}),
+                patch('seawar_server.ShipService.is_fleet_killed', return_value=False)):
             resp = self.app.post(self.url, data=dict(x=3, y1=3))
         self.assertEqual(resp.status_code, 200)
 
@@ -71,10 +71,10 @@ class TestShootShipBase():
     def test_set_user_shoot_win(self):
         ship = [[2, 2], [2, 3], [2, 4]]
         border = [[3, 2], [3, 3], [3, 4]]
-        with patch('seawar_server.TargetFieldJSON.select_cell', return_value=(3, 3)), \
-             patch('seawar_server.ShipService.shoot_to', return_value=True),\
-             patch('seawar_server.ShipService.get_ship_if_killed', return_value = {'ship': ship, 'border': border}), \
-             patch('seawar_server.ShipService.is_fleet_killed', return_value = True):
+        with (patch('seawar_server.TargetFieldJSON.select_cell', return_value=(3, 3)),
+                patch('seawar_server.ShipService.shoot_to', return_value=True),
+                patch('seawar_server.ShipService.get_ship_if_killed', return_value={'ship': ship, 'border': border}),
+                patch('seawar_server.ShipService.is_fleet_killed', return_value=True)):
             resp = self.app.post(self.url, data=dict(x=3, y1=3))
         self.assertEqual(resp.status_code, 200)
 
